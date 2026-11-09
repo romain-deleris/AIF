@@ -4,12 +4,12 @@ FROM python:3.10-slim
 # Set the working directory in the container to /app
 WORKDIR /app
 
+# Install dependencies before copying the application so this layer stays cached
+COPY requirements-api.txt .
+RUN pip install --no-cache-dir -r requirements-api.txt
 
 # Copy the current directory contents into the container at /app
 COPY . /app
-
-# Install any needed packages specified in requirements.txt
-RUN pip install --trusted-host pypi.python.org -r requirements-api.txt
 
 # Make port 5075 available to the world outside this container
 EXPOSE 5075

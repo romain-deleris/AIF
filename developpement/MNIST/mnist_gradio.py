@@ -5,10 +5,18 @@ import io
 import numpy as np
 
 def recognize_digit(image):
-    # the sketchpad returns a dict with a 'composite' key corresponding to the image
-    image = image['composite']
-    # By default the image is a 4 channels image, we need to convert it to a 1 channel image since the API expects a 1 channel image
-    image = image[:, :, 0]
+    if image is None:
+        raise gr.Error("Dessinez un chiffre avant de lancer la prédiction.")
+
+    if isinstance(image, dict):
+        image = image.get("composite")
+        if image is None:
+            raise gr.Error("Le dessin n'a pas pu être récupéré.")
+
+    if image.ndim == 3:
+        # The editor returns RGBA/RGB data, while the API expects one channel.
+        image = image[:, :, 0]
+
     # invert the image
     image = 255 - image
     # convert numpy to uint8
@@ -24,8 +32,14 @@ def recognize_digit(image):
 
 if __name__=='__main__':
 
-    interface = gr.Interface(fn=recognize_digit, 
-                inputs="sketchpad", 
+    interface = gr.Interface(fn=recognize_digit,
+                inputs=gr.Sketchpad(
+                    type="numpy",
+                    image_mode="RGBA",
+                    canvas_size=(280, 280),
+                    fixed_canvas=True,
+                    label="Dessin",
+                ),
                 outputs='label',
                 live=False,
                 description="Draw a number on the sketchpad to see the model's prediction.",
